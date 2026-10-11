@@ -1,0 +1,15 @@
+{
+  "name": "forbiddencity-web",
+  "version": "1.0.0",
+  "description": "程序化紫禁城 3D 漫游与中轴导览",
+  "main": "screenshot.js",
+  "scripts": {
+    "start": "python -m http.server 8765",
+    "test": "node screenshot.js",
+    "verify": "node screenshot.js"
+  },
+  "keywords": [],
+  "author": "Alex",
+  "license": "ISC",
+  "type": "commonjs"
+}

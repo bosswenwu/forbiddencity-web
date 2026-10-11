@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#160d0a">
+<title>紫禁城 · 数字漫游</title>
+<style>
+:root{--ink:#160d0a;--red:#8e1f1b;--gold:#e9bd67;--paper:#f2e5c9;--glass:rgba(22,13,10,.74)}
+*{box-sizing:border-box}html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#120a08;color:var(--paper);font-family:"Microsoft YaHei","Noto Sans SC",system-ui,sans-serif}canvas{display:block;width:100%;height:100%;touch-action:none}button{font:inherit;color:inherit}.glass{background:var(--glass);border:1px solid rgba(233,189,103,.28);box-shadow:0 14px 40px rgba(0,0,0,.28);backdrop-filter:blur(14px)}
+#loading{position:fixed;inset:0;z-index:100;display:grid;place-items:center;background:#160d0a;transition:opacity .7s}.seal{width:74px;height:74px;border:2px solid var(--gold);display:grid;place-items:center;color:var(--gold);font:700 30px serif;transform:rotate(45deg)}.seal span{transform:rotate(-45deg)}
+#intro{position:fixed;inset:0;z-index:50;display:grid;align-items:end;padding:clamp(24px,6vw,86px);background:linear-gradient(90deg,rgba(12,7,5,.88),rgba(12,7,5,.2) 58%,rgba(12,7,5,.05));transition:opacity .55s,visibility .55s}.intro-copy{max-width:630px}.eyebrow{color:var(--gold);letter-spacing:.28em;font-size:12px}.intro-copy h1{margin:14px 0 10px;font:500 clamp(46px,8vw,104px)/.95 "SimSun","Songti SC",serif;letter-spacing:.12em;text-shadow:0 5px 30px #000}.intro-copy h2{font-weight:400;font-size:clamp(16px,2vw,25px);letter-spacing:.18em;margin:0 0 22px}.intro-copy p{max-width:520px;color:#e4d5b8;line-height:1.8;font-size:14px}.primary{margin-top:22px;border:1px solid var(--gold);background:linear-gradient(135deg,#a52a20,#6e1716);padding:13px 26px;border-radius:2px;cursor:pointer;letter-spacing:.16em;box-shadow:0 8px 28px rgba(84,8,7,.45)}.primary:hover{filter:brightness(1.15);transform:translateY(-1px)}
+#topbar{position:fixed;z-index:20;left:18px;right:18px;top:max(16px,env(safe-area-inset-top));display:flex;justify-content:space-between;align-items:flex-start;pointer-events:none}.brand{padding:12px 15px;border-radius:3px;pointer-events:auto}.brand strong{display:block;color:var(--gold);font:600 17px serif;letter-spacing:.22em}.brand small{display:block;margin-top:4px;color:#d3c2a4;font-size:9px;letter-spacing:.18em}.actions{display:flex;gap:8px;pointer-events:auto}.icon-btn{border:1px solid rgba(233,189,103,.3);background:var(--glass);padding:9px 12px;border-radius:3px;cursor:pointer}.icon-btn.active,.icon-btn:hover{background:#8e1f1b}#subtitle{position:fixed;z-index:25;left:50%;bottom:34px;transform:translate(-50%,8px);max-width:min(760px,calc(100vw - 32px));padding:11px 20px;border-radius:3px;background:rgba(30,12,10,.78);border:1px solid rgba(233,189,103,.28);color:#f3e6cc;font:500 16px/1.65 serif;letter-spacing:.04em;text-align:center;opacity:0;transition:.3s;pointer-events:none}#subtitle.visible{opacity:1;transform:translate(-50%,0)}@media(max-width:760px){#subtitle{bottom:150px;font-size:14px}}
+#placeCard{position:fixed;z-index:20;left:18px;bottom:24px;width:min(355px,calc(100vw - 36px));padding:15px 17px;border-radius:3px}.place-index{color:var(--gold);font:700 11px/1 serif;letter-spacing:.16em}.place-name{font:500 25px/1.2 serif;margin:7px 0 3px}.place-en{font-size:9px;color:#bda985;letter-spacing:.14em}.place-desc{font-size:12px;line-height:1.6;color:#dfd1b7;margin:10px 0 0}.tour-controls{display:flex;gap:7px;margin-top:12px}.tour-controls button{flex:1;border:1px solid rgba(233,189,103,.24);background:rgba(255,255,255,.04);padding:8px;border-radius:2px;cursor:pointer}.tour-controls button:hover{background:#8e1f1b}
+#axisNav{position:fixed;z-index:20;right:18px;top:50%;transform:translateY(-50%);padding:12px 10px;border-radius:3px;max-height:62vh;overflow:auto}.axis-item{display:flex;align-items:center;gap:8px;border:0;background:none;width:100%;padding:5px 3px;color:#bba98c;font-size:10px;text-align:left;cursor:pointer;white-space:nowrap}.axis-item:before{content:"";width:5px;height:5px;border:1px solid #c79c50;transform:rotate(45deg)}.axis-item.active{color:#fff}.axis-item.active:before{background:var(--gold);box-shadow:0 0 10px var(--gold)}
+#reticle{position:fixed;z-index:8;left:50%;top:50%;width:8px;height:8px;margin:-4px;border:1px solid rgba(255,255,255,.7);border-radius:50%;pointer-events:none;opacity:.65}.hint{position:fixed;z-index:10;left:50%;top:18px;transform:translateX(-50%);padding:7px 11px;border-radius:2px;color:#dac6a5;font-size:10px;pointer-events:none;white-space:nowrap}
+#mobileControls{display:none;position:fixed;inset:0;z-index:15;pointer-events:none}.joystick{position:absolute;left:24px;bottom:35px;width:112px;height:112px;border-radius:50%;border:1px solid rgba(233,189,103,.35);background:rgba(22,13,10,.28);pointer-events:auto;touch-action:none}.stick{position:absolute;left:34px;top:34px;width:44px;height:44px;border-radius:50%;background:rgba(233,189,103,.55);border:1px solid var(--gold)}.mobile-buttons{position:absolute;right:22px;bottom:38px;display:grid;gap:10px;pointer-events:auto}.mobile-buttons button{width:62px;height:62px;border-radius:50%;border:1px solid rgba(233,189,103,.5);background:rgba(94,22,18,.76)}
+#toast{position:fixed;z-index:30;left:50%;top:76px;transform:translate(-50%,-12px);padding:9px 15px;border-radius:2px;background:#5e1714;opacity:0;transition:.25s;pointer-events:none;font-size:12px}.visible{opacity:1!important;transform:translate(-50%,0)!important}.hidden{opacity:0!important;visibility:hidden!important;pointer-events:none!important}
+.intro-mode #placeCard,.intro-mode #axisNav,.intro-mode .hint,.intro-mode .actions{opacity:0;pointer-events:none}
+@media(max-width:800px),(pointer:coarse){#mobileControls{display:block}#axisNav{display:none}.hint{top:auto;bottom:15px}.actions .desktop-only{display:none}#placeCard{bottom:164px;width:calc(100vw - 36px)}.place-desc{display:none}.intro-copy p{max-width:88%}#reticle{display:none}.brand strong{font-size:14px}.brand small{display:none}}
+@media(max-height:650px){#placeCard{padding:10px 13px}.place-desc{display:none}.tour-controls{margin-top:7px}.axis-item{padding:3px}}
+</style>
+</head>
+<body class="intro-mode">
+<div id="loading"><div class="seal"><span>宫</span></div></div>
+<div id="intro"><div class="intro-copy"><div class="eyebrow">DIGITAL HERITAGE EXPERIENCE</div><h1>紫禁城</h1><h2>沿中轴，穿越六百年</h2><p>从午门进入，在三大殿与内廷之间自由漫游。建筑为实时程序化生成，空间关系参考故宫中轴格局，并以风格化方式呈现。</p><button class="primary" id="startBtn">进入午门　→</button></div></div>
+<div id="topbar"><div class="brand glass"><strong>紫禁城</strong><small>FORBIDDEN CITY · 数字漫游</small></div><div class="actions"><button class="icon-btn glass desktop-only" id="walkBtn">漫游</button><button class="icon-btn glass" id="tourBtn">导览</button><button class="icon-btn glass" id="aerialBtn">全景</button><button class="icon-btn glass" id="soundBtn">声景</button><button class="icon-btn glass" id="narrBtn">解说</button></div></div>
+<div class="hint glass" id="hint">WASD 移动 · 鼠标环视 · Shift 加速 · M 显示界面</div>
+<div id="axisNav" class="glass"></div>
+<div id="placeCard" class="glass"><div class="place-index" id="placeIndex">01 / 11</div><div class="place-name" id="placeName">午门</div><div class="place-en" id="placeEn">MERIDIAN GATE</div><p class="place-desc" id="placeDesc"></p><div class="tour-controls"><button id="prevBtn">← 上一处</button><button id="focusBtn">正面观赏</button><button id="nextBtn">下一处 →</button></div></div>
+<div id="reticle"></div><div id="toast"></div><div id="subtitle"></div>
+<div id="mobileControls"><div class="joystick" id="joystick"><div class="stick" id="stick"></div></div><div class="mobile-buttons"><button id="jumpBtn">登高</button><button id="mobileTourBtn">下一处</button></div></div>
+<script type="importmap">{"imports":{"three":"https://unpkg.com/three@0.160.0/build/three.module.js","three/addons/":"https://unpkg.com/three@0.160.0/examples/jsm/"}}</script>
+<script type="module">
+import * as THREE from 'three';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+const $=s=>document.querySelector(s),clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,1.65));renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.12;renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;document.body.prepend(renderer.domElement);
+const scene=new THREE.Scene();scene.background=new THREE.Color(0xb7cbd2);scene.fog=new THREE.FogExp2(0xd8c3a4,.0008);const camera=new THREE.PerspectiveCamera(55,innerWidth/innerHeight,.2,1300);
+const pmrem=new THREE.PMREMGenerator(renderer);scene.environment=pmrem.fromScene(new RoomEnvironment(),.03).texture;scene.add(new THREE.HemisphereLight(0xd9edf5,0x493126,1.45));scene.add(new THREE.AmbientLight(0xffead0,.48));const sun=new THREE.DirectionalLight(0xffdfad,3.1);sun.position.set(-70,110,48);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);sun.shadow.camera.left=-260;sun.shadow.camera.right=260;sun.shadow.camera.top=300;sun.shadow.camera.bottom=-300;sun.shadow.camera.near=10;sun.shadow.camera.far=620;sun.shadow.bias=-.0003;scene.add(sun);
+function canvasTexture(draw,w=512,h=512){const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');draw(x,w,h);const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.colorSpace=THREE.SRGBColorSpace;return t}
+const stoneTex=canvasTexture((x,w,h)=>{x.fillStyle='#a9a39a';x.fillRect(0,0,w,h);x.strokeStyle='rgba(65,55,45,.2)';x.lineWidth=3;for(let i=0;i<8;i++){x.beginPath();x.moveTo(0,i*h/8);x.lineTo(w,i*h/8);x.stroke()}for(let i=0;i<8;i++){x.beginPath();x.moveTo(i*w/8,0);x.lineTo(i*w/8,h);x.stroke()}for(let i=0;i<500;i++){x.fillStyle='rgba(255,255,255,'+(Math.random()*.07)+')';x.fillRect(Math.random()*w,Math.random()*h,2,2)}});stoneTex.repeat.set(18,45);
+const roofTex=canvasTexture((x,w,h)=>{x.fillStyle='#b87810';x.fillRect(0,0,w,h);x.strokeStyle='rgba(255,220,110,.55)';x.lineWidth=3;for(let i=0;i<=18;i++){x.beginPath();x.moveTo(i*w/18,0);x.lineTo(i*w/18,h);x.stroke()}x.strokeStyle='rgba(75,35,2,.32)';for(let j=0;j<=8;j++){x.beginPath();x.moveTo(0,j*h/8);x.lineTo(w,j*h/8);x.stroke()}});roofTex.repeat.set(3,2);
+const wallTex=canvasTexture((x,w,h)=>{x.fillStyle='#7e1717';x.fillRect(0,0,w,h);x.strokeStyle='rgba(40,0,0,.32)';x.lineWidth=2;for(let r=0;r<10;r++){x.beginPath();x.moveTo(0,r*h/10);x.lineTo(w,r*h/10);x.stroke();for(let c=0;c<8;c++){let xx=(c+(r%2)*.5)*w/8;x.beginPath();x.moveTo(xx,r*h/10);x.lineTo(xx,(r+1)*h/10);x.stroke()}}});wallTex.repeat.set(4,2);
+const waterTex=canvasTexture((x,w,h)=>{x.fillStyle='#163f48';x.fillRect(0,0,w,h);x.strokeStyle='rgba(190,230,220,.28)';x.lineWidth=2;for(let i=0;i<14;i++){x.beginPath();x.moveTo(0,i*h/14);for(let p=0;p<=w;p+=12)x.lineTo(p,i*h/14+Math.sin(p/20+i)*5);x.stroke()}});waterTex.repeat.set(3,6);
+const M={stone:new THREE.MeshStandardMaterial({map:stoneTex,color:0xd7d2c7,roughness:.86}),white:new THREE.MeshStandardMaterial({color:0xe8e3d6,roughness:.72}),red:new THREE.MeshStandardMaterial({map:wallTex,color:0xa72a25,roughness:.78}),redDark:new THREE.MeshStandardMaterial({color:0x57120f,roughness:.7,emissive:0x220302,emissiveIntensity:.18}),wood:new THREE.MeshStandardMaterial({color:0x8b241d,roughness:.58}),gold:new THREE.MeshStandardMaterial({map:roofTex,color:0xe8b03a,roughness:.42,metalness:.28,emissive:0x3a1a00,emissiveIntensity:.08}),goldTrim:new THREE.MeshStandardMaterial({color:0xf0c35b,roughness:.38,metalness:.34,emissive:0x3a2200,emissiveIntensity:.12}),water:new THREE.MeshPhysicalMaterial({map:waterTex,color:0x2c6a74,roughness:.18,metalness:.12,transparent:true,opacity:.9}),green:new THREE.MeshStandardMaterial({color:0x1e4630,roughness:.9}),trunk:new THREE.MeshStandardMaterial({color:0x4a2f1e,roughness:1}),dark:new THREE.MeshStandardMaterial({color:0x24120d,roughness:.85}),lamp:new THREE.MeshStandardMaterial({color:0xffb15a,emissive:0xff7a1a,emissiveIntensity:1.4,roughness:.4})};
+const world=new THREE.Group();scene.add(world);let meshCount=0;
+function mesh(geo,mat,parent=world,shadow=true){const m=new THREE.Mesh(geo,mat);m.castShadow=shadow;m.receiveShadow=true;parent.add(m);meshCount++;return m}
+function box(w,h,d,mat,parent=world,x=0,y=0,z=0){const m=mesh(new THREE.BoxGeometry(w,h,d),mat,parent);m.position.set(x,y,z);return m}
+function cyl(r,h,mat,parent=world,x=0,y=0,z=0,n=12){const m=mesh(new THREE.CylinderGeometry(r,r,h,n),mat,parent);m.position.set(x,y,z);return m}
+function hipRoof(w,d,h,parent,y){const g=new THREE.BufferGeometry(),v=[],uv=[],ix=[],nx=40,nz=26,W=w/2+2.1,D=d/2+2.2;for(let iz=0;iz<=nz;iz++)for(let j=0;j<=nx;j++){const x=-W+2*W*j/nx,z=-D+2*D*iz/nz,ax=Math.abs(x)/W,az=Math.abs(z)/D,end=Math.max(0,(ax-.54)/.46);let lift=Math.pow(clamp(1-Math.max(az,end),0,1),.62),upturn=1.15*(Math.pow(ax,6)+Math.pow(az,6));v.push(x,h*lift+upturn,z);uv.push(j/nx,iz/nz)}for(let iz=0;iz<nz;iz++)for(let j=0;j<nx;j++){const a=iz*(nx+1)+j,b=a+1,c=a+nx+1,d2=c+1;ix.push(a,c,b,b,c,d2)}g.setAttribute('position',new THREE.Float32BufferAttribute(v,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));g.setIndex(ix);g.computeVertexNormals();const r=mesh(g,M.gold,parent);r.position.y=y;box(w+4.2,.42,d+4.4,M.goldTrim,parent,0,y+.15,0);box(w*.5,.55,.62,M.goldTrim,parent,0,y+h+.15,0);for(const sz of[-1,1]){const c=mesh(new THREE.SphereGeometry(.48,8,6),M.goldTrim,parent);c.scale.set(.65,.85,1.35);c.position.set(0,y+h*.82,sz*(d*.42))}for(let i=-3;i<=3;i++)if(i)box(.28,.42,.28,M.goldTrim,parent,0,y+h*(.55+Math.abs(i)*.04),i*d*.11);for(const sx of[-1,1]){const o=cyl(.28,1.3,M.goldTrim,parent,sx*w*.31,y+h+.7,0,8);o.rotation.z=Math.PI/2}dougong(w,d,y-.15,parent);return r}
+function dougong(w,d,y,parent){const step=2.4;for(const z of[-d/2-1.1,d/2+1.1])for(let x=-w/2+1.4;x<=w/2-1;x+=step){box(.72,.34,1.1,M.redDark,parent,x,y,z);box(1.2,.16,.46,M.goldTrim,parent,x,y+.28,z)}}
+function pyramidRoof(w,h,parent,y){const m=mesh(new THREE.ConeGeometry(Math.max(w,4)*.58,h,4),M.gold,parent);m.position.y=y+h/2;m.rotation.y=Math.PI/4;const fin=mesh(new THREE.SphereGeometry(.45,8,6),M.goldTrim,parent);fin.position.y=y+h+.2;return m}
+function stairs(parent,w,y,z,side=1){for(let i=0;i<7;i++)box(w,y/7,1.1+i*.62,M.white,parent,0,(i+.5)*y/7,z+side*(i*.58));const ramp=box(3.1,.22,6.5,M.white,parent,0,y*.58,z+side*2.1);ramp.rotation.x=side*-.12}
+function railing(parent,w,d,y){const yy=y+.55;box(w,.22,.2,M.white,parent,0,yy,d/2);box(w,.22,.2,M.white,parent,0,yy,-d/2);box(.2,.22,d,M.white,parent,w/2,yy,0);box(.2,.22,d,M.white,parent,-w/2,yy,0);for(let x=-w/2;x<=w/2;x+=2.4){cyl(.14,1.1,M.white,parent,x,yy,d/2);cyl(.14,1.1,M.white,parent,x,yy,-d/2)}for(let z=-d/2;z<=d/2;z+=2.4){cyl(.14,1.1,M.white,parent,w/2,yy,z);cyl(.14,1.1,M.white,parent,-w/2,yy,z)}}
+function building(spec,parent=world){const g=new THREE.Group();g.position.set(spec.x||0,0,spec.z||0);parent.add(g);const w=spec.w,d=spec.d,t=spec.terrace||2.4,wh=spec.wall||7.5,rh=spec.roof||5;if(t>=4){const hs=[t*.3,t*.34,t*.36],pads=[[w+20,d+18],[w+13,d+12],[w+8,d+7]];let y=0;for(let i=0;i<3;i++){box(pads[i][0],hs[i],pads[i][1],i===2?M.stone:M.white,g,0,y+hs[i]/2,0);railing(g,pads[i][0]-1.2,pads[i][1]-1.2,y+hs[i]);y+=hs[i]}stairs(g,Math.min(16,w*.42),t,-(pads[0][1]/2)-1,-1)}else{box(w+8,t,d+7,M.stone,g,0,t/2,0);railing(g,w+7,d+6,t);stairs(g,Math.min(13,w*.48),t,-d/2-3,-1)}box(w,wh,d,M.red,g,0,t+wh/2,0);const doorW=w*.42;box(doorW,wh*.68,.35,M.wood,g,0,t+wh*.34,-d/2-.18);for(let row=0;row<5;row++)for(let col=0;col<7;col++)cyl(.055,.08,M.goldTrim,g,-doorW*.36+col*doorW*.72/6,t+wh*.16+row*wh*.1,-d/2-.42,6);const wins=Math.max(2,Math.round(w/9));for(let i=0;i<wins;i++){const x=-w/2+w/(wins+1)*(i+1);if(Math.abs(x)<doorW/2+1.4)continue;box(1.55,wh*.38,.18,M.dark,g,x,t+wh*.58,-d/2-.16);box(1.75,.1,.22,M.goldTrim,g,x,t+wh*.78,-d/2-.2);box(1.75,.1,.22,M.goldTrim,g,x,t+wh*.38,-d/2-.2)}const cols=Math.max(5,Math.round(w/4));for(let i=0;i<cols;i++){const x=-w/2+1+i*(w-2)/(cols-1);for(const z of[-d/2-.65,d/2+.65])cyl(.34,wh+1.2,M.redDark,g,x,t+(wh+1.2)/2,z,16)}if(spec.pyramid){pyramidRoof(Math.max(w,d),rh+1.5,g,t+wh)}else{hipRoof(w,d,rh,g,t+wh);box(w+2,.7,d+2,M.redDark,g,0,t+wh-.2,0);if(spec.double){box(w*.72,3.1,d*.68,M.red,g,0,t+wh+rh+1.55,0);hipRoof(w*.78,d*.75,rh*.68,g,t+wh+rh+3.05)}}return g}
+function gate(spec){const g=building(spec);for(const sx of[-1,1]){const wing=building({x:sx*(spec.w*.62),w:spec.w*.32,d:spec.d*.92,terrace:(spec.terrace||2.4)*.75,wall:spec.wall*.74,roof:spec.roof*.72},g);wing.position.z=0}if(spec.phoenix){const deck=(spec.terrace||2.4)+spec.wall+spec.roof*.2;[{x:0,w:16},{x:-spec.w*.38,w:11},{x:spec.w*.38,w:11}].forEach(p=>{const hall=building({w:p.w,d:p.w*.62,terrace:.25,wall:p.w*.3,roof:p.w*.22,double:p.w>14},g);hall.position.set(p.x,deck,0)})}return g}
+function cornerTower(x,z){const g=new THREE.Group();g.position.set(x,13.4,z);world.add(g);box(8,5,8,M.red,g,0,2.4,0);box(15,2.8,4.6,M.red,g,0,5.8,0);box(4.6,2.8,15,M.red,g,0,5.8,0);hipRoof(13,4.4,2.3,g,7);hipRoof(4.4,13,2.3,g,7);box(5.5,2.6,5.5,M.red,g,0,8.8,0);hipRoof(6.2,6.2,2.8,g,10)}
+function tree(x,z,s=1){const g=new THREE.Group();g.position.set(x,0,z);world.add(g);cyl(.22*s,1.6*s,M.trunk,g,0,.8*s,0,8);const h=6.4*s;for(let i=0;i<6;i++){const c=mesh(new THREE.SphereGeometry((.95-i*.08)*s,8,6),M.green,g);c.scale.set(.72,1.15,.72);c.position.y=1.5*s+i*h/7}const tip=mesh(new THREE.ConeGeometry(.42*s,1.8*s,7),M.green,g);tip.position.y=1.5*s+h*.9;return g}
+function lion(x,z,flip=1){const g=new THREE.Group();g.position.set(x,2.5,z);g.rotation.y=flip<0?Math.PI:0;world.add(g);const b=mesh(new THREE.SphereGeometry(.75,12,9),M.white,g);b.scale.set(.8,1.1,1);const h=mesh(new THREE.SphereGeometry(.55,12,9),M.white,g);h.position.set(0,.92,-.35);for(let a=0;a<8;a++){const m=mesh(new THREE.SphereGeometry(.16,7,5),M.white,g);m.position.set(Math.sin(a*Math.PI/4)*.58,.95+Math.cos(a*Math.PI/4)*.4,-.18)}box(1.8,.45,1.8,M.white,g,0,-.85,0)}
+const LANDMARKS=[
+{name:'午门',en:'MERIDIAN GATE',z:238,type:'gate',w:50,d:15,wall:10,roof:6,double:true,phoenix:true,desc:'紫禁城正门，城台巍峨、五凤楼展翼。由此进入皇城礼制空间。'},
+{name:'金水桥',en:'INNER GOLDEN WATER BRIDGES',z:190,type:'bridge',desc:'五座汉白玉桥跨越内金水河，曲水与朱墙构成入宫后的第一重景观。'},
+{name:'太和门',en:'GATE OF SUPREME HARMONY',z:154,type:'gate',w:42,d:13,wall:8,roof:5,desc:'外朝三大殿的正门，门前庭院开阔，铜狮分列东西。'},
+{name:'太和殿',en:'HALL OF SUPREME HARMONY',z:86,w:46,d:22,wall:10,roof:7,double:true,terrace:4.5,desc:'紫禁城中等级最高、体量最大的建筑，重大典礼曾在此举行。'},
+{name:'中和殿',en:'HALL OF CENTRAL HARMONY',z:28,w:22,d:22,wall:8,roof:7,pyramid:true,desc:'方形攒尖意象的过渡殿宇，是大典前休息和接受执事官员朝拜之处。'},
+{name:'保和殿',en:'HALL OF PRESERVING HARMONY',z:-24,w:39,d:19,wall:9,roof:6,desc:'外朝后三殿，清代曾用于宴会与殿试。'},
+{name:'乾清门',en:'GATE OF HEAVENLY PURITY',z:-78,type:'gate',w:37,d:12,wall:7,roof:4.8,desc:'外朝与内廷的分界，穿门而过即进入皇帝与后妃生活区域。'},
+{name:'乾清宫',en:'PALACE OF HEAVENLY PURITY',z:-122,w:37,d:18,wall:9,roof:6,double:true,desc:'内廷后三宫之首，明代皇帝寝宫，清代成为处理政务的重要场所。'},
+{name:'交泰殿',en:'HALL OF UNION',z:-164,w:18,d:18,wall:7,roof:6,pyramid:true,desc:'乾坤交泰的象征性殿宇，位于帝后寝宫之间。'},
+{name:'坤宁宫',en:'PALACE OF EARTHLY TRANQUILITY',z:-202,w:34,d:17,wall:8,roof:5.5,desc:'内廷后三宫最北端，明代为皇后寝宫，清代保留萨满祭祀空间。'},
+{name:'御花园',en:'IMPERIAL GARDEN',z:-246,type:'garden',desc:'中轴北端的皇家园林，以钦安殿、古柏、叠石与亭阁收束漫长轴线。'}];
+const ground=mesh(new THREE.PlaneGeometry(1000,1000),new THREE.MeshStandardMaterial({color:0x8b8072,roughness:1}),world,false);ground.rotation.x=-Math.PI/2;ground.position.y=-.05;box(196,.22,560,M.stone,world,0,.05,0);box(12,.28,530,M.white,world,0,.16,0);
+for(const x of[-110,110])box(4,13,590,M.red,world,x,6.5,0);for(const z of[-292,292])box(224,13,4,M.red,world,0,6.5,z);for(const x of[-110,110])box(6,1.2,594,M.goldTrim,world,x,13.25,0);for(const z of[-292,292])box(228,1.2,6,M.goldTrim,world,0,13.25,z);for(const x of[-124,124])box(15,.7,620,M.water,world,x,.12,0);for(const z of[-308,308])box(264,.7,15,M.water,world,0,.12,z);(function merlons(){const geo=new THREE.BoxGeometry(1.5,1.6,2.4),inst=new THREE.InstancedMesh(geo,M.red,280);inst.castShadow=inst.receiveShadow=true;const m4=new THREE.Matrix4(),p=new THREE.Vector3(),q=new THREE.Quaternion(),s=new THREE.Vector3();let n=0;for(const x of[-110,110])for(let z=-276;z<=276;z+=6){s.set(1,1,1);p.set(x,14.1,z);m4.compose(p,q,s);inst.setMatrixAt(n++,m4)}for(const z of[-292,292])for(let x=-102;x<=102;x+=6){s.set(1.6,1,.62);p.set(x,14.1,z);m4.compose(p,q,s);inst.setMatrixAt(n++,m4)}inst.count=n;world.add(inst)})();for(const x of[-110,110])for(const z of[-292,292])cornerTower(x,z);
+for(const l of LANDMARKS){if(l.type==='bridge'){box(188,.35,13,M.water,world,0,.1,l.z);box(196,.55,1.3,M.white,world,0,.45,l.z-7.2);box(196,.55,1.3,M.white,world,0,.45,l.z+7.2);for(let x=-24;x<=24;x+=12)box(8,.7,18,M.white,world,x,.55,l.z);continue}if(l.type==='garden'){for(let x=-70;x<=70;x+=14)for(let z=-264;z<=-226;z+=18)if(Math.abs(x)>12)tree(x,z,.8+Math.random()*.4);building({z:l.z,w:24,d:15,terrace:2,wall:7,roof:5,double:true});continue}if(l.type==='gate')gate(l);else building(l)}
+lion(-25,142);lion(25,142,-1);for(const z of[122,70,12,-48,-118,-174])for(const x of[-73,-48,48,73])building({x,z,w:18,d:12,terrace:1.4,wall:5.2,roof:3.6});for(const z of[175,132,104,57,4,-44,-100,-145,-190,-225])for(const x of[-91,-36,36,91])if((Math.abs(x)+Math.abs(z))%3>0)tree(x,z,.72+Math.random()*.28);
+for(let z=220;z>-222;z-=22)for(const x of[-9,9]){cyl(.12,3.2,M.dark,world,x,1.6,z,8);box(1.05,1.35,1.05,M.lamp,world,x,3.5,z);box(1.3,.18,1.3,M.goldTrim,world,x,4.25,z)}
+const skyGeo=new THREE.SphereGeometry(900,32,16),skyMat=new THREE.ShaderMaterial({side:THREE.BackSide,uniforms:{top:{value:new THREE.Color(0x6e97c4)},bottom:{value:new THREE.Color(0xf3d2a4)}},vertexShader:'varying vec3 p;void main(){p=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',fragmentShader:'uniform vec3 top;uniform vec3 bottom;varying vec3 p;void main(){float h=clamp(normalize(p).y*.65+.35,0.,1.);gl_FragColor=vec4(mix(bottom,top,h),1.);}'});scene.add(new THREE.Mesh(skyGeo,skyMat));
+let yaw=0,pitch=-.08,mode='intro',current=0,uiVisible=true,fly=false;const keys={},velocity=new THREE.Vector3(),joy={x:0,y:0};camera.position.set(100,86,318);
+function lookAt(x,y,z){const dx=x-camera.position.x,dy=y-camera.position.y,dz=z-camera.position.z;yaw=Math.atan2(-dx,-dz);pitch=Math.atan2(dy,Math.hypot(dx,dz));camera.rotation.set(pitch,yaw,0,'YXZ')}lookAt(0,8,0);
+function setPlace(i,teleport=false){current=(i+LANDMARKS.length)%LANDMARKS.length;const l=LANDMARKS[current];$('#placeIndex').textContent=String(current+1).padStart(2,'0')+' / '+LANDMARKS.length;$('#placeName').textContent=l.name;$('#placeEn').textContent=l.en;$('#placeDesc').textContent=l.desc;document.querySelectorAll('.axis-item').forEach((b,j)=>b.classList.toggle('active',j===current));if(teleport)focusLandmark()}
+function focusLandmark(){stopTour();const l=LANDMARKS[current],v=focusPose(current);camera.position.copy(v.pos);yaw=v.yaw;pitch=v.pitch;fly=false;mode='tour';toast(l.name+' · '+l.en);bell();narrate(l.name)}
+function aerial(){stopTour();mode='aerial';fly=true;camera.position.set(150,180,330);lookAt(0,0,-20);toast('紫禁城中轴全景')}
+function start(){stopTour();if(!Sound.ctx)setSound(true);mode='walk';document.body.classList.remove('intro-mode');$('#intro').classList.add('hidden');camera.position.set(0,5.2,284);yaw=0;pitch=-.03;setPlace(0);toast('已进入午门 · 开始漫游');try{if(matchMedia('(pointer:fine)').matches)renderer.domElement.requestPointerLock()}catch(e){}}
+function toast(t){const e=$('#toast');e.textContent=t;e.classList.add('visible');clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove('visible'),1800)}
+const nav=$('#axisNav');LANDMARKS.forEach((l,i)=>{const b=document.createElement('button');b.className='axis-item';b.textContent=l.name;b.onclick=()=>setPlace(i,true);nav.appendChild(b)});setPlace(0);
+addEventListener('keydown',e=>{keys[e.code]=true;if(e.code==='KeyM'){uiVisible=!uiVisible;['#topbar','#axisNav','#placeCard','.hint'].forEach(s=>$(s).style.display=uiVisible?'':'none')}if(e.code==='KeyF')fly=!fly});addEventListener('keyup',e=>keys[e.code]=false);
+renderer.domElement.addEventListener('click',()=>{if(mode!=='intro'&&matchMedia('(pointer:fine)').matches&&!document.pointerLockElement)renderer.domElement.requestPointerLock()});addEventListener('mousemove',e=>{if(mode!=='intro'&&document.pointerLockElement){yaw-=e.movementX*.0022;pitch=clamp(pitch-e.movementY*.0022,-1.35,1.2)}});
+let drag=null;renderer.domElement.addEventListener('pointerdown',e=>{if(e.pointerType!=='mouse'){drag={x:e.clientX,y:e.clientY};renderer.domElement.setPointerCapture(e.pointerId)}});renderer.domElement.addEventListener('pointermove',e=>{if(drag){yaw-=(e.clientX-drag.x)*.006;pitch=clamp(pitch-(e.clientY-drag.y)*.006,-1.3,1.15);drag={x:e.clientX,y:e.clientY}}});renderer.domElement.addEventListener('pointerup',()=>drag=null);
+$('#startBtn').onclick=start;$('#walkBtn').onclick=start;$('#tourBtn').onclick=()=>Tour.active?stopTour():autoTour(current>=LANDMARKS.length-1?0:current);$('#aerialBtn').onclick=aerial;$('#prevBtn').onclick=()=>setPlace(current-1,true);$('#nextBtn').onclick=()=>setPlace(current+1,true);$('#focusBtn').onclick=focusLandmark;$('#mobileTourBtn').onclick=()=>setPlace(current+1,true);$('#jumpBtn').onpointerdown=()=>{fly=true;keys.Space=true};$('#jumpBtn').onpointerup=()=>keys.Space=false;
+// ===== 声景：全部用 Web Audio 实时合成，无外部音频文件 =====
+const NARRATION={
+'午门':'午门是紫禁城的正门，平面呈凹字形，城台上的五座楼阁俗称五凤楼。明清两代，颁布历书、献俘等典礼都在这里举行。穿过门洞，便正式进入宫城。',
+'金水桥':'内金水河自西向东蜿蜒流过太和门前的广场，河上并列五座汉白玉石桥，中间一座最宽，专供皇帝通行。金水河既是景观，也承担着宫中排水与防火的作用。',
+'太和门':'太和门是外朝三大殿的正门。明代皇帝曾在这里御门听政。门前一对铜狮东雄西雌，守护着通往太和殿的广场。',
+'太和殿':'太和殿俗称金銮殿，是紫禁城内规格最高的殿宇，重檐庑殿顶，面阔十一间。皇帝登基、大婚、册立皇后，以及元旦、冬至等大典都在这里举行。现存建筑为清康熙年间重建。',
+'中和殿':'中和殿平面呈方形，单檐四角攒尖顶。大典之前，皇帝先在这里稍作休息，接受执事官员的朝拜；祭祀之前，也在这里审阅祝文。',
+'保和殿':'保和殿是外朝三大殿的最后一座。清代每逢除夕和正月十五，皇帝在这里宴请王公大臣；乾隆后期起，科举最高一级的殿试也移到这里举行。',
+'乾清门':'乾清门是外朝与内廷的分界。清代皇帝常在这里御门听政，听取奏报、处理政务。跨过这道门，就进入了帝后生活的内廷。',
+'乾清宫':'乾清宫是内廷后三宫之首。明代和清初是皇帝的寝宫，雍正以后皇帝移居养心殿，这里改作召见大臣、处理日常政务的场所。殿内高悬正大光明匾，匾后曾存放秘密立储的传位诏书。',
+'交泰殿':'交泰殿位于乾清宫与坤宁宫之间，取天地交泰之意。清代皇后在此接受千秋节朝贺；乾隆年间起，象征皇权的二十五方宝玺收藏于此。',
+'坤宁宫':'坤宁宫在明代是皇后的寝宫。清代按照满族习俗改建，西侧用于萨满祭祀，东暖阁则作为皇帝大婚的洞房。',
+'御花园':'御花园位于中轴线北端，以钦安殿为中心，古柏、奇石与亭台左右对称又各有变化。穿过园后的顺贞门和神武门，紫禁城的中轴之旅就到此结束。'};
+
+const Sound={ctx:null,on:false,master:null,amb:null,wind:null,water:null,noise:null,nextBird:0,nextQin:6,stepT:0,stepSide:1,ks:new Map()};
+function initAudio(){
+  if(Sound.ctx)return;
+  const ctx=Sound.ctx=new (window.AudioContext||window.webkitAudioContext)();
+  const comp=ctx.createDynamicsCompressor();comp.connect(ctx.destination);
+  Sound.master=ctx.createGain();Sound.master.gain.value=0;Sound.master.connect(comp);
+  Sound.amb=ctx.createGain();Sound.amb.gain.value=1;Sound.amb.connect(Sound.master);
+  const len=ctx.sampleRate*2,buf=ctx.createBuffer(1,len,ctx.sampleRate),d=buf.getChannelData(0);
+  for(let i=0;i<len;i++)d[i]=Math.random()*2-1;
+  Sound.noise=buf;
+  const loop=()=>{const s=ctx.createBufferSource();s.buffer=buf;s.loop=true;s.start();return s};
+  // 风：带通噪声，频率与音量缓慢漂移
+  const wf=ctx.createBiquadFilter();wf.type='bandpass';wf.frequency.value=420;wf.Q.value=.6;
+  const wg=ctx.createGain();wg.gain.value=.05;loop().connect(wf).connect(wg).connect(Sound.amb);
+  Sound.wind={f:wf,g:wg,phase:Math.random()*10};
+  // 水：靠近金水河与护城河时渐强
+  const lp=ctx.createBiquadFilter();lp.type='lowpass';lp.frequency.value=950;
+  const hp=ctx.createBiquadFilter();hp.type='highpass';hp.frequency.value=220;
+  const wag=ctx.createGain();wag.gain.value=0;loop().connect(hp).connect(lp).connect(wag).connect(Sound.amb);
+  Sound.water={g:wag,f:lp};
+}
+function setSound(on){
+  initAudio();
+  const ctx=Sound.ctx;if(ctx.state==='suspended')ctx.resume();
+  Sound.on=on;
+  Sound.master.gain.setTargetAtTime(on?.9:0,ctx.currentTime,.4);
+  $('#soundBtn').classList.toggle('active',on);
+}
+function env(g,t,peak,attack,decay){g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(peak,t+attack);g.gain.exponentialRampToValueAtTime(.0001,t+attack+decay)}
+function panner(v){const p=Sound.ctx.createStereoPanner();p.pan.value=v;return p}
+// 铜钟：非谐分音 + 长衰减，抵达地标时敲一下
+function bell(){
+  if(!Sound.on)return;const ctx=Sound.ctx,t=ctx.currentTime+.05,base=98;
+  [[1,.5,7],[2.02,.28,5],[2.76,.22,4],[4.13,.12,2.6],[5.4,.08,1.8],[6.8,.05,1.2]].forEach(([r,a,dec])=>{
+    const o=ctx.createOscillator(),g=ctx.createGain();o.frequency.value=base*r;o.connect(g).connect(Sound.master);env(g,t,a*.2,.006,dec);o.start(t);o.stop(t+dec+.1)});
+  const s=ctx.createBufferSource(),f=ctx.createBiquadFilter(),g=ctx.createGain();s.buffer=Sound.noise;f.type='bandpass';f.frequency.value=1800;
+  s.connect(f).connect(g).connect(Sound.master);env(g,t,.05,.002,.08);s.start(t);s.stop(t+.2);
+}
+// 鸟鸣：几声快速滑音
+function bird(){
+  const ctx=Sound.ctx,t0=ctx.currentTime+.02,n=2+Math.floor(Math.random()*4),f0=2400+Math.random()*2200,p=panner(Math.random()*1.6-.8);p.connect(Sound.amb);
+  for(let i=0;i<n;i++){const t=t0+i*(.09+Math.random()*.07),o=ctx.createOscillator(),g=ctx.createGain(),f=f0*(.9+Math.random()*.25);
+    o.frequency.setValueAtTime(f,t);o.frequency.exponentialRampToValueAtTime(f*(1.25+Math.random()*.3),t+.06);o.connect(g).connect(p);env(g,t,.018,.008,.07);o.start(t);o.stop(t+.12)}
+}
+// 古琴：Karplus-Strong 拨弦，D 宫五声音阶
+function qinBuffer(freq){
+  if(Sound.ks.has(freq))return Sound.ks.get(freq);
+  const ctx=Sound.ctx,sr=ctx.sampleRate,N=Math.round(sr/freq),len=Math.round(sr*3.2),buf=ctx.createBuffer(1,len,sr),d=buf.getChannelData(0),ring=new Float32Array(N);
+  for(let i=0;i<N;i++)ring[i]=Math.random()*2-1;
+  for(let i=0,k=0;i<len;i++,k=(k+1)%N){const nk=(k+1)%N;d[i]=ring[k];ring[k]=.4985*(ring[k]+ring[nk])}
+  Sound.ks.set(freq,buf);return buf;
+}
+const QIN=[146.83,164.81,185,220,246.94,293.66,329.63,370,440];
+function qin(){
+  const ctx=Sound.ctx,n=1+Math.floor(Math.random()*3);let t=ctx.currentTime+.05,i=Math.floor(Math.random()*QIN.length);
+  for(let k=0;k<n;k++){const s=ctx.createBufferSource(),g=ctx.createGain(),f=ctx.createBiquadFilter();f.type='lowpass';f.frequency.value=1600;
+    s.buffer=qinBuffer(QIN[i]);s.connect(f).connect(g).connect(Sound.amb);g.gain.value=.11;s.start(t);
+    t+=.35+Math.random()*.5;i=clamp(i+Math.floor(Math.random()*3)-1,0,QIN.length-1)}
+}
+// 脚步：石板上的短促敲击
+function step(){
+  const ctx=Sound.ctx,t=ctx.currentTime+.01,p=panner(.12*(Sound.stepSide=-Sound.stepSide));p.connect(Sound.amb);
+  const s=ctx.createBufferSource(),f=ctx.createBiquadFilter(),g=ctx.createGain();s.buffer=Sound.noise;f.type='bandpass';f.frequency.value=1300+Math.random()*500;f.Q.value=1.4;
+  s.connect(f).connect(g).connect(p);env(g,t,.07,.003,.06);s.start(t,Math.random()*1.5);s.stop(t+.12);
+  const o=ctx.createOscillator(),og=ctx.createGain();o.frequency.value=85;o.connect(og).connect(p);env(og,t,.05,.004,.05);o.start(t);o.stop(t+.1);
+}
+function soundTick(dt,moving,speed){
+  if(!Sound.on||!Sound.ctx)return;
+  const ctx=Sound.ctx,now=ctx.currentTime,pos=camera.position,w=Sound.wind;
+  w.phase+=dt*.13;
+  const height=clamp((pos.y-6)/150,0,1);
+  w.f.frequency.setTargetAtTime(330+160*Math.sin(w.phase)+90*Math.sin(w.phase*2.7)+260*height,now,.3);
+  w.g.gain.setTargetAtTime(.035+.02*Math.sin(w.phase*1.3)+.07*height,now,.4);
+  const nearBridge=Math.max(0,1-Math.abs(pos.z-190)/45)*Math.max(0,1-Math.abs(pos.x)/110);
+  const nearMoat=Math.max(0,(Math.abs(pos.x)-88)/30,(Math.abs(pos.z)-268)/30);
+  Sound.water.g.gain.setTargetAtTime(.1*clamp(Math.max(nearBridge,nearMoat),0,1)*(1-height),now,.5);
+  if(now>Sound.nextBird){const garden=pos.z<-215;if(height<.5)bird();Sound.nextBird=now+(garden?1.5:4)+Math.random()*(garden?3:8)}
+  if(now>Sound.nextQin){qin();Sound.nextQin=now+9+Math.random()*9}
+  if(moving&&!fly){Sound.stepT-=dt;if(Sound.stepT<=0){step();Sound.stepT=speed>20?.3:.44}}else Sound.stepT=0;
+}
+
+// ===== 解说：浏览器语音合成 + 字幕，没有中文语音时只显示字幕 =====
+const Narr={on:true,voice:null,speaking:false,token:0};
+function pickVoice(){
+  const vs=speechSynthesis.getVoices().filter(v=>/^zh(-|_)?(CN|Hans)?/i.test(v.lang)&&!/HK|TW/i.test(v.lang));
+  Narr.voice=vs.find(v=>/Xiaoxiao|Yunxi|Natural|Online/i.test(v.name))||vs.find(v=>/Huihui|Kangkang|Yaoyao/i.test(v.name))||vs[0]||null;
+}
+if('speechSynthesis' in window){pickVoice();speechSynthesis.onvoiceschanged=pickVoice}
+function subtitle(text){const e=$('#subtitle');e.textContent=text||'';e.classList.toggle('visible',!!text)}
+function stopNarration(){Narr.token++;Narr.speaking=false;if('speechSynthesis' in window)speechSynthesis.cancel();subtitle('');if(Sound.amb&&Sound.ctx)Sound.amb.gain.setTargetAtTime(1,Sound.ctx.currentTime,.4)}
+function sayLine(text,token){
+  return new Promise(done=>{
+    if(token!==Narr.token)return done();
+    subtitle(text);
+    const fallback=()=>setTimeout(done,Math.max(1800,text.length*230));
+    if(!Narr.voice||!('speechSynthesis' in window))return fallback();
+    const u=new SpeechSynthesisUtterance(text);u.voice=Narr.voice;u.lang=Narr.voice.lang;u.rate=1.02;
+    let finished=false;const minEnd=Date.now()+Math.max(1500,text.length*160);   // 语音出错或秒结束时，字幕也至少停留到读得完
+    const end=()=>{if(!finished){finished=true;setTimeout(done,Math.max(0,minEnd-Date.now()))}};
+    u.onend=end;u.onerror=end;speechSynthesis.speak(u);
+    setTimeout(end,text.length*420+4000);   // 防止个别浏览器不触发 onend 卡住
+  });
+}
+async function narrate(name){
+  stopNarration();
+  const text=NARRATION[name];if(!Narr.on||!text)return;
+  const token=Narr.token;Narr.speaking=true;
+  if(Sound.amb&&Sound.ctx)Sound.amb.gain.setTargetAtTime(.45,Sound.ctx.currentTime,.3);
+  for(const line of text.split('。').filter(Boolean)){await sayLine(line+'。',token);if(token!==Narr.token)return}
+  stopNarration();
+}
+$('#narrBtn').classList.toggle('active',Narr.on);
+$('#narrBtn').onclick=()=>{Narr.on=!Narr.on;$('#narrBtn').classList.toggle('active',Narr.on);if(Narr.on){toast(Narr.voice?'解说已开启 · '+Narr.voice.name.replace(/Microsoft |Google /,''):'解说已开启 · 本机没有中文语音，显示字幕');narrate(LANDMARKS[current].name)}else{stopNarration();toast('解说已关闭')}};
+$('#soundBtn').onclick=()=>{setSound(!Sound.on);toast(Sound.on?'宫廷声景：风、鸟、水声、古琴与脚步':'声景已关闭')};
+
+// ===== 自动导览：镜头飞行到下一处 → 敲钟 → 解说 → 继续 =====
+const Tour={active:false,flight:null,token:0};
+// 正面观赏机位：保持原取景距离，但不能退进前一座建筑（含台基）里
+function focusPose(i){const l=LANDMARKS[i];let z=l.z+(l.type==='bridge'?34:(l.d||15)*1.65+17);const prev=LANDMARKS[i-1];if(prev&&prev.type!=='bridge'){const back=prev.z-(prev.d||15)/2-(prev.type==='garden'?0:3.5)-1.5;z=Math.min(z,back)}return{pos:new THREE.Vector3(0,l.type==='bridge'?9:8.5,z),yaw:0,pitch:l.type==='bridge'?-.24:-.075}}
+function flyTo(i){
+  const to=focusPose(i),from=camera.position.clone(),dist=from.distanceTo(to.pos);
+  return new Promise(done=>{Tour.flight={from,to,y0:yaw,p0:pitch,t:0,t0:performance.now(),dur:clamp(dist/45,1.4,4.2),arc:Math.min(28,dist*.12),done};mode='tour';fly=true});
+}
+function flightTick(dt){
+  const f=Tour.flight;if(!f)return;
+  f.t=Math.min(1,(performance.now()-f.t0)/1000/f.dur);   // 按真实时间推进，低帧率设备也不会拖慢
+  const k=f.t<.5?4*f.t*f.t*f.t:1-Math.pow(-2*f.t+2,3)/2;
+  camera.position.lerpVectors(f.from,f.to.pos,k);camera.position.y+=Math.sin(Math.PI*k)*f.arc;
+  yaw=f.y0+(f.to.yaw-f.y0)*k;pitch=f.p0+(f.to.pitch-f.p0)*k;velocity.set(0,0,0);
+  if(f.t>=1){Tour.flight=null;f.done()}
+}
+async function autoTour(from){
+  stopTour();Tour.active=true;const token=++Tour.token;
+  $('#tourBtn').classList.add('active');$('#tourBtn').textContent='停止导览';
+  document.body.classList.remove('intro-mode');$('#intro').classList.add('hidden');
+  if(!Sound.ctx)setSound(true);
+  toast('自动导览 · 沿中轴依次讲解 11 处地标');
+  for(let i=from;i<LANDMARKS.length;i++){
+    setPlace(i);await flyTo(i);if(token!==Tour.token)return;
+    arrive(i,true);await narrateAndWait(LANDMARKS[i].name,token);if(token!==Tour.token)return;
+    await new Promise(r=>setTimeout(r,900));if(token!==Tour.token)return;
+  }
+  stopTour();toast('中轴导览结束 · 可继续自由漫游');
+}
+async function narrateAndWait(name,token){
+  if(!Narr.on){await new Promise(r=>setTimeout(r,3500));return}
+  await narrate(name);
+}
+function arrive(i,silentToast){const l=LANDMARKS[i],p=focusPose(i);camera.position.copy(p.pos);yaw=p.yaw;pitch=p.pitch;fly=false;mode='tour';bell();if(!silentToast)toast(l.name+' · '+l.en)}
+function stopTour(){
+  if(!Tour.active&&!Tour.flight)return;
+  Tour.token++;Tour.active=false;
+  if(Tour.flight){const f=Tour.flight;Tour.flight=null;f.done()}
+  stopNarration();fly=false;
+  $('#tourBtn').classList.remove('active');$('#tourBtn').textContent='导览';
+}
+// 用户手动操作时让出控制权
+addEventListener('keydown',e=>{if(Tour.active&&/^(Key[WASD]|Arrow|Space|ShiftLeft)/.test(e.code))stopTour()});
+renderer.domElement.addEventListener('pointerdown',()=>{if(Tour.active&&Tour.flight==null)stopTour()});
+const joystick=$('#joystick'),stick=$('#stick');function joyMove(e){const r=joystick.getBoundingClientRect(),x=e.clientX-(r.left+r.width/2),y=e.clientY-(r.top+r.height/2),len=Math.hypot(x,y),m=Math.min(36,len),nx=len?x/len:0,ny=len?y/len:0;joy.x=nx*m/36;joy.y=ny*m/36;stick.style.transform='translate('+nx*m+'px,'+ny*m+'px)'}joystick.addEventListener('pointerdown',e=>{try{joystick.setPointerCapture(e.pointerId)}catch(_){}joyMove(e)});joystick.addEventListener('pointermove',e=>{if(joystick.hasPointerCapture(e.pointerId))joyMove(e)});function joyEnd(){joy.x=joy.y=0;stick.style.transform='translate(0,0)'}joystick.addEventListener('pointerup',joyEnd);joystick.addEventListener('pointercancel',joyEnd);
+const clock=new THREE.Clock();let fps=0,frames=0,elapsed=0;function animate(){requestAnimationFrame(animate);const dt=Math.min(.04,clock.getDelta());frames++;elapsed+=dt;if(elapsed>.5){fps=Math.round(frames/elapsed);frames=0;elapsed=0}if(mode!=='intro'){const f=new THREE.Vector3(-Math.sin(yaw),0,-Math.cos(yaw)),r=new THREE.Vector3(Math.cos(yaw),0,-Math.sin(yaw)),dir=new THREE.Vector3();if(keys.KeyW)dir.add(f);if(keys.KeyS)dir.sub(f);if(keys.KeyD)dir.add(r);if(keys.KeyA)dir.sub(r);dir.addScaledVector(r,joy.x);dir.addScaledVector(f,-joy.y);if(dir.lengthSq())dir.normalize();const speed=keys.ShiftLeft?28:13;velocity.x=dir.x*speed;velocity.z=dir.z*speed;if(fly)velocity.y=(keys.Space?12:0)-(keys.ControlLeft?12:0);else velocity.y+=-22*dt;camera.position.addScaledVector(velocity,dt);if(!fly&&camera.position.y<5.2){camera.position.y=5.2;velocity.y=0}camera.position.x=clamp(camera.position.x,-104,104);camera.position.z=clamp(camera.position.z,-286,286);camera.rotation.set(pitch,yaw,0,'YXZ');let nearest=0,dist=Infinity;LANDMARKS.forEach((l,i)=>{const d=Math.abs(camera.position.z-l.z);if(d<dist){dist=d;nearest=i}});if(nearest!==current&&mode==='walk')setPlace(nearest)}flightTick(dt);if(Tour.flight)camera.rotation.set(pitch,yaw,0,'YXZ');const hs=Math.hypot(velocity.x,velocity.z);soundTick(dt,mode!=='intro'&&hs>1,hs);waterTex.offset.y=clock.elapsedTime*.05;renderer.render(scene,camera)}animate();
+window.__game={ready:true,autoTour,stopTour,start,aerial,focusLandmark,tourNext:()=>setPlace(current+1,true),teleportToLandmark:i=>{if(typeof i==='string')i=LANDMARKS.findIndex(l=>l.name===i||l.en===i);setPlace(i<0?0:i,true)},teleport:(x,y,z,lookYaw=0,lookPitch=0)=>{camera.position.set(x,y,z);yaw=lookYaw;pitch=lookPitch;mode='walk'},setJoystick:(x,y)=>{joy.x=clamp(x,-1,1);joy.y=clamp(y,-1,1)},setLook:(y,p)=>{yaw=y;pitch=p},setFly:v=>fly=!!v,state:()=>({ready:true,mode,currentLandmark:LANDMARKS[current].name,landmarks:LANDMARKS.length,position:camera.position.toArray(),yaw,pitch,fly,fps,meshes:meshCount,mobile:getComputedStyle($('#mobileControls')).display!=='none',introVisible:!$('#intro').classList.contains('hidden'),sound:Sound.on,narrating:Narr.speaking,voice:Narr.voice&&Narr.voice.name,autoTour:Tour.active,flying:!!Tour.flight,subtitle:$('#subtitle').textContent})};
+addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});setTimeout(()=>$('#loading').classList.add('hidden'),450);
+</script>
+</body>
+</html>
